@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quills Fun Adventure — Mini Social Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+  <style>
+    :root{
+      --violet:#7d4ae3; --pink:#ff9ecd; --yellow:#ffdf6b;
+      --blue:#7ee6f0; --mint:#a3ffb3;
+      --bg:#fdf6ff; --ground:#f0d9ff;
+    }
+    html,body{height:100%; margin:0; overflow:hidden; background:var(--bg);}
+    canvas{display:block;}
+
+    #msgBox{
+      position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
+      background:rgba(255,255,255,.9); color:var(--violet);
+      padding:10px 16px; border-radius:16px; font-family:system-ui,sans-serif;
+      font-weight:600; display:none; box-shadow:0 8px 24px rgba(0,0,0,.08);
+    }
+
+    #joystick{position:fixed; left:18px; bottom:18px; width:110px; height:110px; border-radius:50%;
+      border:2px solid #ddd; background:rgba(255,255,255,.55); touch-action:none; user-select:none;}
+    #stick{position:absolute; width:44px; height:44px; border-radius:50%;
+      background:var(--violet); top:33px; left:33px; transform:translate(0,0);
+      box-shadow:0 6px 16px rgba(125,74,227,.35);}
+
+    #sendFun{
+      position:fixed; right:20px; bottom:20px; padding:12px 20px;
+      background:var(--violet); color:white; font-family:system-ui,sans-serif;
+      font-weight:600; border:none; border-radius:20px;
+      box-shadow:0 6px 16px rgba(0,0,0,.2); cursor:pointer;
+      transition:.2s;
+    }
+    #sendFun:hover{transform:scale(1.05);}
+  </style>
+</head>
+<body>
+  <div id="msgBox"></div>
+  <div id="joystick"><div id="stick"></div></div>
+  <button id="sendFun">✨ Send FUN</button>
+
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color("#fdf6ff");
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, .1, 1000);
+
+    const renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    document.body.appendChild(renderer.domElement);
+
+    const hemi = new THREE.HemisphereLight(0xffe0f7, 0x88ccff, 1.2);
+    scene.add(hemi);
+
+    const groundGeo = new THREE.CircleGeometry(20, 64);
+    const groundMat = new THREE.MeshStandardMaterial({color:"#f0d9ff", flatShading:true});
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI/2;
+    scene.add(ground);
+
+    const playerGeo = new THREE.SphereGeometry(.5,16,16);
+    const playerMat = new THREE.MeshStandardMaterial({color:"#7d4ae3", flatShading:true});
+    const player = new THREE.Mesh(playerGeo, playerMat);
+    player.position.y = .5;
+    scene.add(player);
+
+    const colors = ["#ff9ecd","#ffdf6b","#7ee6f0","#a3ffb3"];
+    const npcs = [];
+    for (let i=0;i<4;i++){
+      const geo = new THREE.BoxGeometry(1,1,1);
+      const mat = new THREE.MeshStandardMaterial({color:colors[i], flatShading:true});
+      const npc = new THREE.Mesh(geo, mat);
+      npc.position.set(Math.cos(i*1.5)*5, .5, Math.sin(i*1.5)*5);
+      scene.add(npc);
+      npcs.push(npc);
+    }
+
+    const rig = new THREE.Object3D();
+    const yawPivot = new THREE.Object3D();
+    const pitchPivot = new THREE.Object3D();
+    scene.add(rig);
+    rig.add(yawPivot); yawPivot.add(pitchPivot); pitchPivot.add(camera);
+
+    let yaw=0, pitch=0.25, camDist=6;
+    function updateCameraRig(){
+      rig.position.copy(player.position);
+      yawPivot.rotation.y = yaw;
+      pitchPivot.rotation.x = pitch;
+      camera.position.set(0,1.6,camDist);
+      camera.lookAt(rig.position);
+    }
+    updateCameraRig();
+
+    const move = {forward:0,right:0};
+    const speed = 0.08;
+    const down={};
+    window.addEventListener("keydown",e=>{
+      down[e.key.toLowerCase()]=true;
+      if(e.key==="w")move.forward=1;
+      if(e.key==="s")move.forward=-1;
+      if(e.key==="a")move.right=-1;
+      if(e.key==="d")move.right=1;
+    });
+    window.addEventListener("keyup",e=>{
+      down[e.key.toLowerCase()]=false;
+      if(e.key==="w"){move.forward=down["s"]?-1:0;}
+      if(e.key==="s"){move.forward=down["w"]?1:0;}
+      if(e.key==="a"){move.right=down["d"]?1:0;}
+      if(e.key==="d"){move.right=down["a"]?-1:0;}
+    });
+
+    const joy=document.getElementById("joystick"),stick=document.getElementById("stick");
+    let joyActive=false,joyStartX=0,joyStartY=0;
+    const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+    function setStick(dx,dy){
+      const lim=40; const cdx=clamp(dx,-lim,lim), cdy=clamp(dy,-lim,lim);
+      stick.style.transform=`translate(${cdx}px,${cdy}px)`;
+      move.right=cdx/lim; move.forward=-cdy/lim;
+    }
+    joy.addEventListener("touchstart",e=>{
+      const t=e.touches[0]; joyActive=true; joyStartX=t.clientX; joyStartY=t.clientY;
+    });
+    joy.addEventListener("touchmove",e=>{
+      if(!joyActive)return;
+      const t=e.touches[0]; setStick(t.clientX-joyStartX,t.clientY-joyStartY);
+    });
+    joy.addEventListener("touchend",()=>{joyActive=false;setStick(0,0);move.forward=0;move.right=0;});
+
+    /* ----- camera look with LEFT mouse drag ----- */
+    let camDragging=false,lastX=0,lastY=0;
+    let clickStart={x:0,y:0}; let wasDrag=false;
+    window.addEventListener("mousedown",e=>{
+      if(e.button===0){
+        camDragging=true; lastX=e.clientX; lastY=e.clientY;
+        clickStart={x:e.clientX,y:e.clientY}; wasDrag=false;
+      }
+    });
+    window.addEventListener("mousemove",e=>{
+      if(camDragging){
+        const dx=e.clientX-lastX, dy=e.clientY-lastY;
+        lastX=e.clientX; lastY=e.clientY;
+        if(Math.abs(dx)+Math.abs(dy)>3) wasDrag=true;
+        yaw-=dx*0.0022; pitch-=dy*0.0022; pitch=clamp(pitch,-1.2,1.2);
+        updateCameraRig();
+      }
+    });
+    window.addEventListener("mouseup",e=>{if(e.button===0)camDragging=false;});
+    window.addEventListener("wheel",e=>{camDist=clamp(camDist+(e.deltaY>0?0.6:-0.6),3,12);updateCameraRig();},{passive:true});
+
+    /* ----- raycast NPC click (only if not drag) ----- */
+    const raycaster=new THREE.Raycaster(); const mouse=new THREE.Vector2();
+    const msgBox=document.getElementById("msgBox");
+    function showMsg(txt){
+      msgBox.textContent=txt; msgBox.style.display="block";
+      clearTimeout(showMsg._t); showMsg._t=setTimeout(()=>msgBox.style.display="none",1800);
+    }
+    window.addEventListener("click",e=>{
+      if(wasDrag) return;
+      mouse.x=(e.clientX/window.innerWidth)*2-1;
+      mouse.y=-(e.clientY/window.innerHeight)*2+1;
+      raycaster.setFromCamera(mouse,camera);
+      const hit=raycaster.intersectObjects(npcs,false);
+      if(hit.length) showMsg("✨ FUN Message Unlocked! ✨");
+    });
+
+    /* ----- Send FUN button ----- */
+    document.getElementById("sendFun").addEventListener("click",()=>{
+      showMsg("🎉 You sent FUN!");
+    });
+
+    /* ----- animate loop ----- */
+    const fwd=new THREE.Vector3(),right=new THREE.Vector3(),upY=new THREE.Vector3(0,1,0);
+    function animate(time){
+      requestAnimationFrame(animate);
+
+      // Movement (camera-relative)
+      fwd.set(0,0,-1).applyAxisAngle(upY,yaw).normalize();
+      right.set(1,0,0).applyAxisAngle(upY,yaw).normalize();
+      if(move.forward!==0) player.position.addScaledVector(fwd,move.forward*speed);
+      if(move.right!==0) player.position.addScaledVector(right,move.right*speed);
+
+      // Collision: stay on island radius 18
+      const dist=Math.sqrt(player.position.x**2+player.position.z**2);
+      if(dist>18){ player.position.x*=18/dist; player.position.z*=18/dist; }
+
+      // NPC idle animation
+      npcs.forEach((npc,i)=>{
+        npc.rotation.y += 0.01;
+        npc.position.y = 0.5 + Math.sin(time*0.002 + i)*0.2;
+      });
+
+      updateCameraRig();
+      renderer.render(scene,camera);
+    }
+    animate();
+
+    window.addEventListener("resize",()=>{
+      camera.aspect=window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth,window.innerHeight);
+    });
+  </script>
+</body>
+</html>
