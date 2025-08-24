@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Quills Fun Adventure — Mini Social Map</title>
+  <title>Quills Archery Survival</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
   <style>
     :root{
@@ -12,6 +12,31 @@
     }
     html,body{height:100%; margin:0; overflow:hidden; background:var(--bg);}
     canvas{display:block;}
+
+    #hud{
+      position:fixed; top:16px; left:50%; transform:translateX(-50%);
+      font-family:system-ui,sans-serif; font-weight:600;
+      background:rgba(255,255,255,0.8);
+      padding:8px 16px; border-radius:16px;
+      color:var(--violet); box-shadow:0 4px 12px rgba(0,0,0,.1);
+      display:none;
+    }
+
+    #introScreen, #gameOverScreen {
+      position:fixed; top:0; left:0; right:0; bottom:0;
+      background:rgba(255,255,255,0.95);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      font-family:system-ui,sans-serif; font-weight:600; color:var(--violet);
+      z-index:10;
+    }
+    #introScreen button, #gameOverScreen button {
+      margin-top:12px; padding:12px 20px; font-size:16px;
+      border:none; border-radius:20px; cursor:pointer; font-weight:600;
+      background:var(--violet); color:white;
+      box-shadow:0 6px 16px rgba(0,0,0,.2);
+      transition:.2s;
+    }
+    #introScreen button:hover, #gameOverScreen button:hover { transform:scale(1.05); }
 
     #msgBox{
       position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
@@ -26,29 +51,50 @@
       background:var(--violet); top:33px; left:33px; transform:translate(0,0);
       box-shadow:0 6px 16px rgba(125,74,227,.35);}
 
-    #sendFun{
-      position:fixed; right:20px; bottom:20px; padding:12px 20px;
+    #shootBtn{
+      position:fixed; right:20px; bottom:20px; padding:14px 22px;
       background:var(--violet); color:white; font-family:system-ui,sans-serif;
       font-weight:600; border:none; border-radius:20px;
       box-shadow:0 6px 16px rgba(0,0,0,.2); cursor:pointer;
-      transition:.2s;
+      transition:.2s; display:none;
     }
-    #sendFun:hover{transform:scale(1.05);}
+    #shootBtn:hover{transform:scale(1.05);}
   </style>
 </head>
 <body>
+  <!-- Intro Screen -->
+  <div id="introScreen">
+    <h1>🏹 Quills Archery Survival</h1>
+    <p>Move with joystick / WASD, aim with drag, shoot with click/tap!</p>
+    <button id="startBtn">Start Game</button>
+  </div>
+
+  <!-- Game HUD -->
+  <div id="hud">❤️ HP: <span id="hp">3</span> | 🎯 Score: <span id="score">0</span></div>
+
+  <!-- Game Over Screen -->
+  <div id="gameOverScreen" style="display:none;">
+    <h2>💀 Game Over</h2>
+    <p>Your Score: <span id="finalScore">0</span></p>
+    <button id="restartBtn">Restart</button>
+    <button id="shareBtn">Share on Twitter</button>
+  </div>
+
   <div id="msgBox"></div>
   <div id="joystick"><div id="stick"></div></div>
-  <button id="sendFun">✨ Send FUN</button>
+  <button id="shootBtn">🏹 Shoot</button>
 
   <script type="module">
     import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 
+    let gameRunning = false;
+
     const scene = new THREE.Scene();
+    const textureLoader = new THREE.TextureLoader();
+
     scene.background = new THREE.Color("#fdf6ff");
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, .1, 1000);
-
     const renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -63,22 +109,40 @@
     ground.rotation.x = -Math.PI/2;
     scene.add(ground);
 
-    const playerGeo = new THREE.SphereGeometry(.5,16,16);
-    const playerMat = new THREE.MeshStandardMaterial({color:"#7d4ae3", flatShading:true});
-    const player = new THREE.Mesh(playerGeo, playerMat);
-    player.position.y = .5;
-    scene.add(player);
+    const playerTex = textureLoader.load("player.png"); // path ke logo player
+const playerMat = new THREE.SpriteMaterial({ map: playerTex, transparent: true });
+const player = new THREE.Sprite(playerMat);
+player.scale.set(1.5,1.5,1.5); // atur ukuran logo
+player.position.y = 0.5;
+scene.add(player);
 
-    const colors = ["#ff9ecd","#ffdf6b","#7ee6f0","#a3ffb3"];
-    const npcs = [];
-    for (let i=0;i<4;i++){
-      const geo = new THREE.BoxGeometry(1,1,1);
-      const mat = new THREE.MeshStandardMaterial({color:colors[i], flatShading:true});
-      const npc = new THREE.Mesh(geo, mat);
-      npc.position.set(Math.cos(i*1.5)*5, .5, Math.sin(i*1.5)*5);
-      scene.add(npc);
-      npcs.push(npc);
+
+    const npcTextures = [
+  textureLoader.load("npc1.png"),
+  textureLoader.load("npc2.png"),
+  textureLoader.load("npc3.png"),
+  textureLoader.load("npc4.png"),
+];
+const npcs = [];
+for (let i=0;i<4;i++){
+  const mat = new THREE.SpriteMaterial({ map: npcTextures[i], transparent: true });
+  const npc = new THREE.Sprite(mat);
+  npc.scale.set(1.5,1.5,1.5); // atur ukuran logo
+  npc.position.set(Math.cos(i*1.5)*5, .5, Math.sin(i*1.5)*5);
+  scene.add(npc);
+  npcs.push(npc);
+}
+
+    // NPC akan mencoba menembak setiap 2 detik
+setInterval(()=>{
+  if(!gameRunning || hp<=0) return;
+  npcs.forEach(npc=>{
+    if(npc.visible && Math.random()<0.5){ // 50% chance tembak
+      npcShoot(npc);
     }
+  });
+},2000);
+
 
     const rig = new THREE.Object3D();
     const yawPivot = new THREE.Object3D();
@@ -100,6 +164,7 @@
     const speed = 0.08;
     const down={};
     window.addEventListener("keydown",e=>{
+      if(!gameRunning) return;
       down[e.key.toLowerCase()]=true;
       if(e.key==="w")move.forward=1;
       if(e.key==="s")move.forward=-1;
@@ -107,6 +172,7 @@
       if(e.key==="d")move.right=1;
     });
     window.addEventListener("keyup",e=>{
+      if(!gameRunning) return;
       down[e.key.toLowerCase()]=false;
       if(e.key==="w"){move.forward=down["s"]?-1:0;}
       if(e.key==="s"){move.forward=down["w"]?1:0;}
@@ -123,22 +189,22 @@
       move.right=cdx/lim; move.forward=-cdy/lim;
     }
     joy.addEventListener("touchstart",e=>{
+      if(!gameRunning) return;
       const t=e.touches[0]; joyActive=true; joyStartX=t.clientX; joyStartY=t.clientY;
     });
     joy.addEventListener("touchmove",e=>{
-      if(!joyActive)return;
+      if(!joyActive || !gameRunning)return;
       const t=e.touches[0]; setStick(t.clientX-joyStartX,t.clientY-joyStartY);
     });
     joy.addEventListener("touchend",()=>{joyActive=false;setStick(0,0);move.forward=0;move.right=0;});
 
-    /* ----- camera look with LEFT mouse drag ----- */
+    /* ----- camera look with mouse & touch drag ----- */
     let camDragging=false,lastX=0,lastY=0;
-    let clickStart={x:0,y:0}; let wasDrag=false;
+    let wasDrag=false;
+
     window.addEventListener("mousedown",e=>{
-      if(e.button===0){
-        camDragging=true; lastX=e.clientX; lastY=e.clientY;
-        clickStart={x:e.clientX,y:e.clientY}; wasDrag=false;
-      }
+      if(!gameRunning) return;
+      if(e.button===0){camDragging=true; lastX=e.clientX; lastY=e.clientY; wasDrag=false;}
     });
     window.addEventListener("mousemove",e=>{
       if(camDragging){
@@ -149,61 +215,179 @@
         updateCameraRig();
       }
     });
-    window.addEventListener("mouseup",e=>{if(e.button===0)camDragging=false;});
-    window.addEventListener("wheel",e=>{camDist=clamp(camDist+(e.deltaY>0?0.6:-0.6),3,12);updateCameraRig();},{passive:true});
+    window.addEventListener("mouseup",()=>{camDragging=false;});
 
-    /* ----- raycast NPC click (only if not drag) ----- */
-    const raycaster=new THREE.Raycaster(); const mouse=new THREE.Vector2();
-    const msgBox=document.getElementById("msgBox");
-    function showMsg(txt){
-      msgBox.textContent=txt; msgBox.style.display="block";
-      clearTimeout(showMsg._t); showMsg._t=setTimeout(()=>msgBox.style.display="none",1800);
-    }
-    window.addEventListener("click",e=>{
-      if(wasDrag) return;
-      mouse.x=(e.clientX/window.innerWidth)*2-1;
-      mouse.y=-(e.clientY/window.innerHeight)*2+1;
-      raycaster.setFromCamera(mouse,camera);
-      const hit=raycaster.intersectObjects(npcs,false);
-      if(hit.length) showMsg("✨ FUN Message Unlocked! ✨");
-    });
+    window.addEventListener("touchstart",e=>{
+      if(!gameRunning) return;
+      if(e.touches.length===1){
+        camDragging=true;
+        lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; wasDrag=false;
+      }
+    },{passive:true});
+    window.addEventListener("touchmove",e=>{
+      if(camDragging && e.touches.length===1){
+        const dx=e.touches[0].clientX-lastX;
+        const dy=e.touches[0].clientY-lastY;
+        lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+        if(Math.abs(dx)+Math.abs(dy)>3) wasDrag=true;
+        yaw-=dx*0.0022; pitch-=dy*0.0022; pitch=clamp(pitch,-1.2,1.2);
+        updateCameraRig();
+      }
+    },{passive:true});
+    window.addEventListener("touchend",()=>{camDragging=false;});
+    window.addEventListener("wheel",e=>{
+      camDist=clamp(camDist+(e.deltaY>0?0.6:-0.6),3,12);updateCameraRig();
+    },{passive:true});
 
-    /* ----- Send FUN button ----- */
-    document.getElementById("sendFun").addEventListener("click",()=>{
-      showMsg("🎉 You sent FUN!");
-    });
+    /* ----- HUD ----- */
+    let hp = 3;
+    let score = 0;
+    const hpEl = document.getElementById("hp");
+    const scoreEl = document.getElementById("score");
+    function updateHUD(){hpEl.textContent=hp;scoreEl.textContent=score;}
 
-    /* ----- animate loop ----- */
+    /* ----- Arrows ----- */
+    const arrows = [];
+    const arrowSpeed = 0.3;
+    const npcArrows = [];
+const npcArrowSpeed = 0.15;
+
+function npcShoot(npc){
+  if(!npc.visible || hp<=0) return;
+  const geo = new THREE.SphereGeometry(0.15, 12, 12);
+  const mat = new THREE.MeshStandardMaterial({color:"#ff3333"});
+  const bullet = new THREE.Mesh(geo, mat);
+
+  // arah dari npc → ke player
+  const dir = player.position.clone().sub(npc.position).normalize();
+  bullet.position.copy(npc.position).add(new THREE.Vector3(0,0.5,0));
+  bullet.userData.dir = dir;
+  
+  scene.add(bullet);
+  npcArrows.push(bullet);
+}
+
+
+function shootArrow(){
+  if(!gameRunning || hp<=0) return;
+  // bentuk bola kecil
+  const geo = new THREE.SphereGeometry(0.2, 16, 16);
+  const mat = new THREE.MeshStandardMaterial({color:"#333"});
+  const arrow = new THREE.Mesh(geo,mat);
+
+  // arah tembak tetap sama
+  const dir = new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0),yaw);
+  arrow.position.copy(player.position).add(new THREE.Vector3(0,0.5,0));
+  arrow.userData.dir = dir.clone().normalize();
+  
+  scene.add(arrow);
+  arrows.push(arrow);
+}
+
+    window.addEventListener("click",e=>{if(gameRunning && !wasDrag) shootArrow();});
+    document.getElementById("shootBtn").addEventListener("click",shootArrow);
+
+    /* ----- Animate Loop ----- */
     const fwd=new THREE.Vector3(),right=new THREE.Vector3(),upY=new THREE.Vector3(0,1,0);
     function animate(time){
       requestAnimationFrame(animate);
+      if(gameRunning && hp>0){
+        fwd.set(0,0,-1).applyAxisAngle(upY,yaw).normalize();
+        right.set(1,0,0).applyAxisAngle(upY,yaw).normalize();
+        if(move.forward!==0) player.position.addScaledVector(fwd,move.forward*speed);
+        if(move.right!==0) player.position.addScaledVector(right,move.right*speed);
 
-      // Movement (camera-relative)
-      fwd.set(0,0,-1).applyAxisAngle(upY,yaw).normalize();
-      right.set(1,0,0).applyAxisAngle(upY,yaw).normalize();
-      if(move.forward!==0) player.position.addScaledVector(fwd,move.forward*speed);
-      if(move.right!==0) player.position.addScaledVector(right,move.right*speed);
+        const dist=Math.sqrt(player.position.x**2+player.position.z**2);
+        if(dist>18){player.position.x*=18/dist; player.position.z*=18/dist;}
 
-      // Collision: stay on island radius 18
-      const dist=Math.sqrt(player.position.x**2+player.position.z**2);
-      if(dist>18){ player.position.x*=18/dist; player.position.z*=18/dist; }
+        npcs.forEach(npc=>{
+          if(!npc.visible) return;
+          const dir = player.position.clone().sub(npc.position).normalize();
+          npc.position.addScaledVector(dir,0.09);
+          if(npc.position.distanceTo(player.position)<1){
+            npc.visible=false; hp--; updateHUD();
+            setTimeout(()=>{if(hp>0){npc.visible=true;npc.position.set((Math.random()-0.5)*15,0.5,(Math.random()-0.5)*15);}},2000);
+          }
+        });
 
-      // NPC idle animation
-      npcs.forEach((npc,i)=>{
-        npc.rotation.y += 0.01;
-        npc.position.y = 0.5 + Math.sin(time*0.002 + i)*0.2;
-      });
+        for(let i=arrows.length-1;i>=0;i--){
+          const arrow = arrows[i];
+          arrow.position.addScaledVector(arrow.userData.dir, arrowSpeed);
+          if(arrow.position.length()>50){scene.remove(arrow);arrows.splice(i,1);continue;}
+          npcs.forEach(npc=>{
+            if(npc.visible && arrow.position.distanceTo(npc.position)<0.8){
+              npc.visible=false; scene.remove(arrow);arrows.splice(i,1);
+              score++; updateHUD();
+              setTimeout(()=>{npc.visible=true;npc.position.set((Math.random()-0.5)*15,0.5,(Math.random()-0.5)*15);},3000);
+            }
+          });
+        }
+        // Update npcArrows
+for(let i=npcArrows.length-1;i>=0;i--){
+  const bullet = npcArrows[i];
+  bullet.position.addScaledVector(bullet.userData.dir, npcArrowSpeed);
+
+  // hapus kalau terlalu jauh
+  if(bullet.position.length()>50){
+    scene.remove(bullet);
+    npcArrows.splice(i,1);
+    continue;
+  }
+
+  // cek tabrakan dengan player
+  if(bullet.position.distanceTo(player.position)<0.8){
+    scene.remove(bullet);
+    npcArrows.splice(i,1);
+    hp--;
+    updateHUD();
+    if(hp<=0){
+      gameRunning=false;
+      document.getElementById("finalScore").textContent=score;
+      document.getElementById("gameOverScreen").style.display="flex";
+    }
+  }
+}
+
+      }
+
+      if(hp<=0 && gameRunning){
+        gameRunning=false;
+        document.getElementById("finalScore").textContent=score;
+        document.getElementById("gameOverScreen").style.display="flex";
+      }
 
       updateCameraRig();
       renderer.render(scene,camera);
     }
     animate();
 
+    /* ----- Start, Restart, Share ----- */
+    document.getElementById("startBtn").addEventListener("click",()=>{
+      gameRunning=true; hp=3;score=0;updateHUD();
+      document.getElementById("introScreen").style.display="none";
+      document.getElementById("hud").style.display="block";
+      document.getElementById("shootBtn").style.display="block";
+    });
+    document.getElementById("restartBtn").addEventListener("click",()=>{
+      gameRunning=true; hp=3;score=0;updateHUD();
+      player.position.set(0,0.5,0);
+      npcs.forEach((npc,i)=>{npc.visible=true;npc.position.set(Math.cos(i*1.5)*5,0.5,Math.sin(i*1.5)*5);});
+      document.getElementById("gameOverScreen").style.display="none";
+      document.getElementById("hud").style.display="block";
+      document.getElementById("shootBtn").style.display="block";
+    });
+    document.getElementById("shareBtn").addEventListener("click",()=>{
+      const url = "https://twitter.com/intent/tweet?text="+encodeURIComponent(`I scored ${score} in Quills Archery Survival! 🏹🎯 Try it yourself!`);
+      window.open(url,"_blank");
+    });
+
     window.addEventListener("resize",()=>{
       camera.aspect=window.innerWidth/window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth,window.innerHeight);
     });
+
+    updateHUD();
   </script>
 </body>
 </html>
