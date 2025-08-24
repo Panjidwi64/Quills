@@ -161,7 +161,7 @@ setInterval(()=>{
     updateCameraRig();
 
     const move = {forward:0,right:0};
-    const speed = 0.04;
+    const speed = 0.08;
     const down={};
     window.addEventListener("keydown",e=>{
       if(!gameRunning) return;
@@ -303,7 +303,7 @@ function shootArrow(){
         npcs.forEach(npc=>{
           if(!npc.visible) return;
           const dir = player.position.clone().sub(npc.position).normalize();
-          npc.position.addScaledVector(dir,0.09);
+          npc.position.addScaledVector(dir,0.06);
           if(npc.position.distanceTo(player.position)<1){
             npc.visible=false; hp--; updateHUD();
             setTimeout(()=>{if(hp>0){npc.visible=true;npc.position.set((Math.random()-0.5)*15,0.5,(Math.random()-0.5)*15);}},2000);
@@ -391,5 +391,6 @@ for(let i=npcArrows.length-1;i>=0;i--){
   </script>
 </body>
 </html>
+
 
 
