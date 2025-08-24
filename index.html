@@ -95,12 +95,12 @@
     // Skybox: 6 gambar (depan, belakang, atas, bawah, kanan, kiri)
 const loader = new THREE.CubeTextureLoader();
 const skybox = loader.load([
-  "bg1.png", // kanan (+x)
-  "bg2.png", // kiri (-x)
-  "bg3.png", // atas (+y)
-  "bg4.png", // bawah (-y)
-  "bg5.png", // depan (+z)
-  "bg6.png", // belakang (-z)
+  "img/skybox/bg1.jpg", // kanan (+x)
+  "img/skybox/bg2.jpg", // kiri (-x)
+  "img/skybox/bg3.jpg", // atas (+y)
+  "img/skybox/bg4.jpg", // bawah (-y)
+  "img/skybox/bg5.jpg", // depan (+z)
+  "img/skybox/bg6.jpg", // belakang (-z)
 ]);
 scene.background = skybox;
 
@@ -418,6 +418,7 @@ for(let i=npcArrows.length-1;i>=0;i--){
   </script>
 </body>
 </html>
+
 
 
 
