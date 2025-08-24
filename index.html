@@ -128,7 +128,7 @@ for (let i=0;i<4;i++){
   const mat = new THREE.SpriteMaterial({ map: npcTextures[i], transparent: true });
   const npc = new THREE.Sprite(mat);
   npc.scale.set(3,3,3); // atur ukuran logo
-  npc.position.set(Math.cos(i*1.5)*5, 1,8, Math.sin(i*1.5)*5);
+  npc.position.set(Math.cos(i*1.5)*5, 1.8, Math.sin(i*1.5)*5);
   scene.add(npc);
   npcs.push(npc);
 }
@@ -306,7 +306,7 @@ function shootArrow(){
           npc.position.addScaledVector(dir,0.06);
           if(npc.position.distanceTo(player.position)<1){
             npc.visible=false; hp--; updateHUD();
-            setTimeout(()=>{if(hp>0){npc.visible=true;npc.position.set((Math.random()-0.5)*15,0.5,(Math.random()-0.5)*15);}},2000);
+            setTimeout(()=>{if(hp>0){npc.visible=true;npc.position.set((Math.random()-0.5)*15,1.8,(Math.random()-0.5)*15);}},2000);
           }
         });
 
@@ -318,7 +318,7 @@ function shootArrow(){
             if(npc.visible && arrow.position.distanceTo(npc.position)<0.8){
               npc.visible=false; scene.remove(arrow);arrows.splice(i,1);
               score++; updateHUD();
-              setTimeout(()=>{npc.visible=true;npc.position.set((Math.random()-0.5)*15,0.5,(Math.random()-0.5)*15);},3000);
+              setTimeout(()=>{npc.visible=true;npc.position.set((Math.random()-0.5)*15,1.8,(Math.random()-0.5)*15);},3000);
             }
           });
         }
@@ -371,7 +371,7 @@ for(let i=npcArrows.length-1;i>=0;i--){
     document.getElementById("restartBtn").addEventListener("click",()=>{
       gameRunning=true; hp=3;score=0;updateHUD();
       player.position.set(0,0.5,0);
-      npcs.forEach((npc,i)=>{npc.visible=true;npc.position.set(Math.cos(i*1.5)*5,0.5,Math.sin(i*1.5)*5);});
+      npcs.forEach((npc,i)=>{npc.visible=true;npc.position.set(Math.cos(i*1.5)*5,1.8,Math.sin(i*1.5)*5);});
       document.getElementById("gameOverScreen").style.display="none";
       document.getElementById("hud").style.display="block";
       document.getElementById("shootBtn").style.display="block";
@@ -391,6 +391,7 @@ for(let i=npcArrows.length-1;i>=0;i--){
   </script>
 </body>
 </html>
+
 
 
 
