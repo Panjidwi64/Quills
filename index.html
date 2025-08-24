@@ -92,7 +92,18 @@
     const scene = new THREE.Scene();
     const textureLoader = new THREE.TextureLoader();
 
-    scene.background = new THREE.Color("#fdf6ff");
+    // Skybox: 6 gambar (depan, belakang, atas, bawah, kanan, kiri)
+const loader = new THREE.CubeTextureLoader();
+const skybox = loader.load([
+  "bg1.png", // kanan (+x)
+  "bg2.png", // kiri (-x)
+  "bg3.png", // atas (+y)
+  "bg4.png", // bawah (-y)
+  "bg5.png", // depan (+z)
+  "bg6.png", // belakang (-z)
+]);
+scene.background = skybox;
+
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, .1, 1000);
     const renderer = new THREE.WebGLRenderer({antialias:true});
@@ -407,6 +418,7 @@ for(let i=npcArrows.length-1;i>=0;i--){
   </script>
 </body>
 </html>
+
 
 
 
