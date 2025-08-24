@@ -103,11 +103,25 @@
     const hemi = new THREE.HemisphereLight(0xffe0f7, 0x88ccff, 1.2);
     scene.add(hemi);
 
-    const groundGeo = new THREE.CircleGeometry(20, 64);
-    const groundMat = new THREE.MeshStandardMaterial({color:"#f0d9ff", flatShading:true});
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI/2;
-    scene.add(ground);
+    // load texture gambar arena
+const textureLoader = new THREE.TextureLoader();
+const groundTex = textureLoader.load("arena.png");
+
+// atur supaya gambar bisa diulang (kalau perlu tile)
+groundTex.wrapS = THREE.RepeatWrapping;
+groundTex.wrapT = THREE.RepeatWrapping;
+groundTex.repeat.set(2,2); // angka bisa diganti sesuai kebutuhan
+
+// bikin ground dengan texture
+const groundGeo = new THREE.CircleGeometry(20, 64);
+const groundMat = new THREE.MeshStandardMaterial({
+  map: groundTex,        // gunakan gambar
+  side: THREE.DoubleSide // opsional: tampak dari bawah juga
+});
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI/2;
+scene.add(ground);
+
 
     const playerTex = textureLoader.load("player.png"); // path ke logo player
 const playerMat = new THREE.SpriteMaterial({ map: playerTex, transparent: true });
@@ -392,6 +406,7 @@ for(let i=npcArrows.length-1;i>=0;i--){
   </script>
 </body>
 </html>
+
 
 
 
