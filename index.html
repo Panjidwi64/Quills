@@ -128,7 +128,7 @@ for (let i=0;i<4;i++){
   const mat = new THREE.SpriteMaterial({ map: npcTextures[i], transparent: true });
   const npc = new THREE.Sprite(mat);
   npc.scale.set(3,3,3); // atur ukuran logo
-  npc.position.set(Math.cos(i*1.5)*5, 1.5, Math.sin(i*1.5)*5);
+  npc.position.set(Math.cos(i*1.5)*5, 3, Math.sin(i*1.5)*5);
   scene.add(npc);
   npcs.push(npc);
 }
@@ -391,6 +391,7 @@ for(let i=npcArrows.length-1;i>=0;i--){
   </script>
 </body>
 </html>
+
 
 
 
