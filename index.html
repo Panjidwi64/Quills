@@ -302,11 +302,8 @@ function shootArrow(){
 
         npcs.forEach(npc=>{
           if(!npc.visible) return;
-          const dir = player.position.clone().sub(npc.position);
-dir.y = 0;                 // jangan ikut turunkan Y
-dir.normalize();
-npc.position.addScaledVector(dir, npcSpeed);
-npc.position.y = npc.scale.y / 2;  // kunci Y sesuai tinggi NPC
+          const dir = player.position.clone().sub(npc.position).normalize();
+          npc.position.addScaledVector(dir,0.09);
 
           if(npc.position.distanceTo(player.position)<1){
             npc.visible=false; hp--; updateHUD();
