@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Quills Archery Survival</title>
+  <title>Quills Shooter Survival</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
   <style>
     :root{
@@ -64,8 +64,8 @@
 <body>
   <!-- Intro Screen -->
   <div id="introScreen">
-    <h1>🏹 Quills Archery Survival</h1>
-    <p>Move with joystick / WASD, aim with drag, shoot with click/tap!</p>
+    <h1> Quills Shooter Survival</h1>
+    <p>Move with WASD, aim with drag, shoot with click/tap!</p>
     <button id="startBtn">Start Game</button>
   </div>
 
@@ -82,7 +82,7 @@
 
   <div id="msgBox"></div>
   <div id="joystick"><div id="stick"></div></div>
-  <button id="shootBtn">🏹 Shoot</button>
+  <button id="shootBtn"> Left Klik to Shoot</button>
 
   <script type="module">
     import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
@@ -404,7 +404,7 @@ for(let i=npcArrows.length-1;i>=0;i--){
       document.getElementById("shootBtn").style.display="block";
     });
     document.getElementById("shareBtn").addEventListener("click",()=>{
-      const url = "https://twitter.com/intent/tweet?text="+encodeURIComponent(`I scored ${score} in Quills Archery Survival! 🏹🎯 Try it yourself!`);
+      const url = "https://twitter.com/intent/tweet?text="+encodeURIComponent(`I scored ${score} in Quills Shooter Survival! 🎯 Try it yourself! https://quills-blond.vercel.app/ #SomniaSommer`);
       window.open(url,"_blank");
     });
 
@@ -418,6 +418,7 @@ for(let i=npcArrows.length-1;i>=0;i--){
   </script>
 </body>
 </html>
+
 
 
 
