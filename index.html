@@ -84,10 +84,15 @@
   <div id="joystick"><div id="stick"></div></div>
   <button id="shootBtn"> Left Klik to Shoot</button>
 
+  <audio id="bgMusic" src="music.mp3" loop></audio>
+
+
   <script type="module">
     import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 
     let gameRunning = false;
+    const bgMusic = document.getElementById("bgMusic");
+
 
     const scene = new THREE.Scene();
     const textureLoader = new THREE.TextureLoader();
@@ -371,6 +376,7 @@ for(let i=npcArrows.length-1;i>=0;i--){
       gameRunning=false;
       document.getElementById("finalScore").textContent=score;
       document.getElementById("gameOverScreen").style.display="flex";
+      bgMusic.pause(); // 🔇 hentikan musik
     }
   }
 }
@@ -394,6 +400,8 @@ for(let i=npcArrows.length-1;i>=0;i--){
       document.getElementById("introScreen").style.display="none";
       document.getElementById("hud").style.display="block";
       document.getElementById("shootBtn").style.display="block";
+        bgMusic.currentTime = 0; // mulai dari awal
+        bgMusic.play();          // 🔊 mainkan musik
     });
     document.getElementById("restartBtn").addEventListener("click",()=>{
       gameRunning=true; hp=3;score=0;updateHUD();
@@ -402,6 +410,8 @@ for(let i=npcArrows.length-1;i>=0;i--){
       document.getElementById("gameOverScreen").style.display="none";
       document.getElementById("hud").style.display="block";
       document.getElementById("shootBtn").style.display="block";
+      bgMusic.currentTime = 0;
+      bgMusic.play();
     });
     document.getElementById("shareBtn").addEventListener("click",()=>{
       const url = "https://twitter.com/intent/tweet?text="+encodeURIComponent(`I scored ${score} in Quills Shooter Survival! 🎯 Try it yourself! https://quills-blond.vercel.app/ #SomniaSommer`);
@@ -418,6 +428,7 @@ for(let i=npcArrows.length-1;i>=0;i--){
   </script>
 </body>
 </html>
+
 
 
 
