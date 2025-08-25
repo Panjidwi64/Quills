@@ -95,12 +95,12 @@
     // Skybox: 6 gambar (depan, belakang, atas, bawah, kanan, kiri)
 const loader = new THREE.CubeTextureLoader();
 const skybox = loader.load([
-  "https://threejs.org/examples/textures/cube/Bridge2/posx.jpg", // kanan (+x)
-  "https://threejs.org/examples/textures/cube/Bridge2/posx.jpg", // kiri (-x)
-  "https://threejs.org/examples/textures/cube/Bridge2/posx.jpg", // atas (+y)
-  "https://threejs.org/examples/textures/cube/Bridge2/posx.jpg", // bawah (-y)
-  "https://threejs.org/examples/textures/cube/Bridge2/posx.jpg", // depan (+z)
-  "https://threejs.org/examples/textures/cube/Bridge2/posx.jpg", // belakang (-z)
+  "img/skybox/b1.jpg", // kanan (+x)
+  "img/skybox/b2.jpg", // kiri (-x)
+  "img/skybox/b3.jpg", // atas (+y)
+  "img/skybox/b4.jpg", // bawah (-y)
+  "img/skybox/b5.jpg", // depan (+z)
+  "img/skybox/b6.jpg", // belakang (-z)
 ]);
 scene.background = skybox;
 
@@ -418,6 +418,7 @@ for(let i=npcArrows.length-1;i>=0;i--){
   </script>
 </body>
 </html>
+
 
 
 
